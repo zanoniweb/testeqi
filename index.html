@@ -1,1 +1,339 @@
 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Testes de QI Multi-Gerações</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #2980b9;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .category-card {
+            background: #eef2f5;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .category-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            background: #e8f4fc;
+        }
+
+        .category-card img {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 10px;
+        }
+
+        .category-card h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .quiz-container {
+            display: none;
+        }
+
+        .timer {
+            font-weight: bold;
+            color: #c0392b;
+            float: right;
+        }
+
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            clear: both;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #1f6391;
+        }
+
+        .btn-option {
+            background-color: #f0f0f0;
+            color: var(--text);
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        .btn-option:hover {
+            background-color: #e0e0e0;
+        }
+
+        .results {
+            display: none;
+            text-align: center;
+        }
+
+        .score-box {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin: 20px 0;
+        }
+
+        .btn-back {
+            background-color: #7f8c8d;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Avaliação de Raciocínio Lógico & QI</h1>
+        <p>Selecione a faixa etária para iniciar o teste adaptado</p>
+    </header>
+
+    <!-- Seleção de Categoria -->
+    <div id="category-selection" class="category-grid">
+        <div class="category-card" onclick="startQuiz('infantil')">
+            <h3>Infantil</h3>
+            <p><small>(6 a 12 anos)</small></p>
+        </div>
+        <div class="category-card" onclick="startQuiz('adolescente')">
+            <h3>Adolescentes</h3>
+            <p><small>(13 a 17 anos)</small></p>
+        </div>
+        <div class="category-card" onclick="startQuiz('adulto')">
+            <h3>Adultos</h3>
+            <p><small>(18 a 59 anos)</small></p>
+        </div>
+        <div class="category-card" onclick="startQuiz('idoso')">
+            <h3>Terceira Idade</h3>
+            <p><small>(60+ anos)</small></p>
+        </div>
+    </div>
+
+    <!-- Interface do Questionário -->
+    <div id="quiz-container" class="quiz-container">
+        <span id="timer" class="timer">Tempo: 00:00</span>
+        <div id="question" class="question"></div>
+        <div id="options" class="options"></div>
+    </div>
+
+    <!-- Tela de Resultados -->
+    <div id="results" class="results">
+        <h2>Teste Concluído!</h2>
+        <p>Seu índice estimado de desempenho é:</p>
+        <div id="score-box" class="score-box">--</div>
+        <p id="score-description"></p>
+        <button class="btn btn-back" onclick="resetApp()">Escolher Outro Teste</button>
+    </div>
+</div>
+
+<script>
+    const questionsDatabase = {
+        infantil: [
+            {
+                q: "Qual figura completa a sequência lógica de cores: Vermelho, Azul, Vermelho, Azul, ___?",
+                options: ["Verde", "Vermelho", "Amarelo", "Roxo"],
+                answer: 1
+            },
+            {
+                q: "Se um cachorro tem 4 patas, quantos patas têm 2 cachorros juntos?",
+                options: ["6", "8", "4", "10"],
+                answer: 1
+            }
+        ],
+        adolescente: [
+            {
+                q: "Complete a sequência numérica: 2, 4, 8, 16, ___",
+                options: ["24", "30", "32", "64"],
+                answer: 2
+            },
+            {
+                q: "Se TODOS os A são B, e ALGUNS B são C, então obrigatoriamente:",
+                options: ["Todos os A são C", "Nenhum A é C", "Alguns A podem ser C", "Nenhuma das anteriores"],
+                answer: 2
+            }
+        ],
+        adulto: [
+            {
+                q: "Qual número deve substituir o ponto de interrogação? 3, 5, 9, 17, 33, (?)",
+                options: ["65", "50", "49", "67"],
+                answer: 0
+            },
+            {
+                q: "Considerando a relação: 'Luz' está para 'Escuridão' assim como 'Conhecimento' está para:",
+                options: ["Estudo", "Sabedoria", "Ignorância", "Livro"],
+                answer: 2
+            }
+        ],
+        idoso: [
+            {
+                q: "Se João é mais alto que Pedro, e Pedro é mais alto que Maria, quem é o mais baixo?",
+                options: ["João", "Pedro", "Maria", "São todos iguais"],
+                answer: 2
+            },
+            {
+                q: "Complete a associação verbal: Ouro é para Metal assim como Rosa é para:",
+                options: ["Espinho", "Jardim", "Flor", "Vermelho"],
+                answer: 2
+            }
+        ]
+    };
+
+    let currentCategory = '';
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timerInterval = null;
+    let secondsElapsed = 0;
+
+    function startQuiz(category) {
+        currentCategory = category;
+        currentQuestionIndex = 0;
+        score = 0;
+        secondsElapsed = 0;
+
+        document.getElementById('category-selection').style.display = 'none';
+        document.getElementById('quiz-container').style.display = 'block';
+        document.getElementById('results').style.display = 'none';
+
+        startTimer();
+        renderQuestion();
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            secondsElapsed++;
+            const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+            const secs = String(secondsElapsed % 60).padStart(2, '0');
+            document.getElementById('timer').innerText = `Tempo: ${mins}:${secs}`;
+        }, 1000);
+    }
+
+    function renderQuestion() {
+        const questions = questionsDatabase[currentCategory];
+        
+        if (currentQuestionIndex >= questions.length) {
+            finishQuiz();
+            return;
+        }
+
+        const qData = questions[currentQuestionIndex];
+        document.getElementById('question').innerText = `${currentQuestionIndex + 1}. ${qData.q}`;
+
+        const optionsContainer = document.getElementById('options');
+        optionsContainer.innerHTML = '';
+
+        qData.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-option';
+            btn.innerText = opt;
+            btn.onclick = () => handleAnswer(idx);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function handleAnswer(selectedIndex) {
+        const questions = questionsDatabase[currentCategory];
+        if (selectedIndex === questions[currentQuestionIndex].answer) {
+            score++;
+        }
+        currentQuestionIndex++;
+        renderQuestion();
+    }
+
+    function finishQuiz() {
+        clearInterval(timerInterval);
+        document.getElementById('quiz-container').style.display = 'none';
+        document.getElementById('results').style.display = 'block';
+
+        const totalQuestions = questionsDatabase[currentCategory].length;
+        const ratio = score / totalQuestions;
+        
+        // Estímulo de pontuação para fins demonstrativos
+        let estimatedIQ = Math.round(85 + (ratio * 35)); 
+        
+        document.getElementById('score-box').innerText = `QI Estimado: ${estimatedIQ}`;
+        
+        let desc = "";
+        if (ratio === 1) {
+            desc = "Desempenho excelente! Ótima capacidade analítica e de resolução de problemas.";
+        } else if (ratio >= 0.5) {
+            desc = "Bom desempenho! Capacidade de raciocínio lógico dentro da média esperada.";
+        } else {
+            desc = "Desempenho básico. Sugere-se praticar mais exercícios de raciocínio abstrato.";
+        }
+        document.getElementById('score-description').innerText = desc;
+    }
+
+    function resetApp() {
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('category-selection').style.display = 'grid';
+    }
+</script>
+
+</body>
+</html>
